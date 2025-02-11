@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Free App Access</title>
+    <style>
+        /* General styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Times New Roman', Times, serif, sans-serif;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        
+        .bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1; 
+        }
+
+        
+        .container {
+            background-color: rgba(0, 0, 0, 0.5); 
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1; 
+        }
+
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        
+        .btn {
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-start {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background-color: #218838;
+        }
+
+        .btn-stop {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background-color: #c82333;
+        }
+    </style>
+    <script>
+        function startGestureControl() {
+            fetch('/start')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.status);
+                });
+        }
+
+        function stopGestureControl() {
+            fetch('/stop')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.status);
+                });
+        }
+    </script>
+</head>
+<body>
+
+    
+    <video class="bg-video" autoplay muted loop>
+        <source src="static/BG.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    
+    <div class="container">
+        
+        <h1>Hand Free App Access</h1>
+
+        
+        <button class="btn btn-start" onclick="startGestureControl()">Start Hand Gesture</button>
+        <button class="btn btn-stop" onclick="stopGestureControl()">Stop Hand Gesture</button>
+    </div>
+
+</body>
+</html>
