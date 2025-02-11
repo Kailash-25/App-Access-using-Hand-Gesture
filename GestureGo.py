@@ -4,24 +4,20 @@ import pyautogui
 import numpy as np
 import time
 
-# Initialize MediaPipe Hand Tracking
+
 mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
 hands = mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.8)
 
-# Get screen size
 screen_width, screen_height = pyautogui.size()
 
-# Start webcam
 cap = cv2.VideoCapture(0)
-cap.set(3, 640)  # Width
-cap.set(4, 480)  # Height
+cap.set(3, 640)  
+cap.set(4, 480)  
 
-# Smoothing parameters
 alpha = 0.3
 prev_cursor_x, prev_cursor_y = 0, 0  
 
-# Gesture tracking variables
 swipe_threshold = 100  
 prev_swipe_x, prev_swipe_y = None, None
 prev_time = time.time()
@@ -41,13 +37,13 @@ while cap.isOpened():
         for hand_landmarks in result.multi_hand_landmarks:
             mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-            # Function to check if a finger is raised using vectors
+            
             def is_finger_raised(tip_idx, base_idx):
                 tip = hand_landmarks.landmark[tip_idx]
                 base = hand_landmarks.landmark[base_idx]
                 return tip.y < base.y  
 
-            # Get finger landmarks
+            
             thumb_tip = hand_landmarks.landmark[4]
             index_tip = hand_landmarks.landmark[8]
             middle_tip = hand_landmarks.landmark[12]
@@ -60,57 +56,55 @@ while cap.isOpened():
             ring_raised = is_finger_raised(16, 14)
             pinky_raised = is_finger_raised(20, 18)
 
-            # Get index finger position for cursor control
+            
             cursor_x = np.interp(index_tip.x, [0, 1], [0, screen_width])
             cursor_y = np.interp(index_tip.y, [0, 1], [0, screen_height])
 
-            # Smooth cursor movement
+            
             smooth_x = alpha * cursor_x + (1 - alpha) * prev_cursor_x
             smooth_y = alpha * cursor_y + (1 - alpha) * prev_cursor_y
             prev_cursor_x, prev_cursor_y = smooth_x, smooth_y
 
-            # **Cursor Control:** Move cursor only when Thumb, Index, and Middle fingers are raised
+            
             if thumb_raised and index_raised and middle_raised and not (ring_raised or pinky_raised):
                 pyautogui.moveTo(smooth_x, smooth_y, duration=0.05)
 
-            # **Pinching Detection for Left & Right Click**
+            
             index_thumb_distance = np.linalg.norm(np.array([thumb_tip.x, thumb_tip.y]) - np.array([index_tip.x, index_tip.y]))
             middle_thumb_distance = np.linalg.norm(np.array([thumb_tip.x, thumb_tip.y]) - np.array([middle_tip.x, middle_tip.y]))
 
-            if index_thumb_distance < 0.05:  # **Left Click**
+            if index_thumb_distance < 0.05:  
                 pyautogui.click()
                 cv2.putText(frame, "Left Click", (50, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
                 time.sleep(0.2)
 
-            if middle_thumb_distance < 0.05:  # **Right Click**
+            if middle_thumb_distance < 0.05:  
                 pyautogui.rightClick()
                 cv2.putText(frame, "Right Click", (50, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                 time.sleep(0.2)
 
-            # **Switch Apps Gesture: Swipe Left/Right with All Fingers Open**
             if thumb_raised and index_raised and middle_raised and ring_raised and pinky_raised:
                 current_time = time.time()
                 if prev_swipe_x is not None and current_time - prev_time > 0.5:
                     delta_x = cursor_x - prev_swipe_x
 
                     if delta_x > swipe_threshold:
-                        pyautogui.hotkey('alt', 'tab')  # Next App
+                        pyautogui.hotkey('alt', 'tab')  
                         cv2.putText(frame, "Switching App ->", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
                         prev_time = current_time
 
                     elif delta_x < -swipe_threshold:
-                        pyautogui.hotkey('alt', 'shift', 'tab')  # Previous App
+                        pyautogui.hotkey('alt', 'shift', 'tab')  
                         cv2.putText(frame, "<- Switching App", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
                         prev_time = current_time
 
                 prev_swipe_x = cursor_x  
 
-            # **Close App Gesture: Swipe Down with All Fingers Open**
             if thumb_raised and index_raised and middle_raised and ring_raised and pinky_raised:
                 if prev_swipe_y is not None and current_time - prev_time > 0.5:
                     delta_y = cursor_y - prev_swipe_y
 
-                    if delta_y > swipe_threshold:  # Swiping downward
+                    if delta_y > swipe_threshold:  
                         pyautogui.hotkey('alt', 'f4')
                         cv2.putText(frame, "Closing App!", (50, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                         prev_time = current_time
